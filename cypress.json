@@ -1,5 +1,5 @@
 {
   "baseUrl": "http://localhost:3000",
-  "apiUrl": "https://graphql.elibrary.mn/v1/graphql",
+  "apiUrl": "",
   "projectId": "5u97eq"
 }
