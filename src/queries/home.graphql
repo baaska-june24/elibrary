@@ -1,0 +1,7 @@
+#import "./contents.graphql"
+
+query GET_FEATURED_CONTENTS($where: contents_bool_exp) {
+  contents(where: $where) {
+    ...ContentCard
+  }
+}

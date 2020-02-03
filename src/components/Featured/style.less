@@ -1,0 +1,35 @@
+.organization_card {
+  display: block;
+  margin: 0.5rem 0;
+  text-align: center;
+
+  .organization-avatar {
+    display: inline-block;
+    width: 70px;
+    height: 70px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center center;
+  }
+
+  h4 {
+    @lines: 3;
+    @line-height: 1rem;
+
+    color: #323232;
+    font-size: 11px;
+    font-weight: 400;
+    margin-top: 1rem;
+    text-overflow: ellipsis;
+    line-height: @line-height;
+    max-height: @line-height * @lines;
+    overflow: hidden;
+    position: relative;
+  }
+}
+
+.ant-carousel .organizations_carousel {
+  .slick-slide img {
+    display: inline-block;
+  }
+}

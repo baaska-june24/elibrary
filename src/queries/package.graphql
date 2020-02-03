@@ -1,0 +1,128 @@
+query GET_PACKAGES(
+  $where: packages_bool_exp
+  $offset: Int
+  $limit: Int
+  $orderBy: [packages_order_by!]
+) {
+  packages(offset: $offset, limit: $limit, order_by: $orderBy, where: $where) {
+    key: id
+    is_active
+    id
+    description
+    name
+    organization_id
+    expired_at
+    price
+    created_at
+    start_date
+    file_connection {
+      file_id: file_id
+      file {
+        bucket
+      }
+    }
+    contents {
+      content {
+        id
+        name
+      }
+    }
+  }
+}
+
+query GET_SINGLE_PACKAGE($id: bigint!) {
+  packages_by_pk(id: $id) {
+    file_connection {
+      file {
+        acl
+        bucket
+        filename
+        key
+        region
+      }
+    }
+  }
+}
+
+query GET_PACKAGES_AGGREGATE($where: packages_bool_exp) {
+  packages_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+mutation CREATE_PACKAGE($data: packages_insert_input!) {
+  insert_packages(objects: [$data]) {
+    returning {
+      id
+      name
+      meta
+      description
+      price
+    }
+  }
+}
+mutation DELETE_PACKAGE($where: packages_bool_exp!) {
+  delete_packages(where: $where) {
+    returning {
+      name
+    }
+  }
+}
+
+mutation UPDATE_PACKAGE($where: packages_bool_exp!, $set: packages_set_input!) {
+  update_packages(where: $where, _set: $set) {
+    returning {
+      name
+    }
+  }
+}
+
+mutation UPDATE_MAP_CONTENTS_PACKAGE(
+  $where: map_contents_packages_bool_exp!
+  $set: map_contents_packages_set_input
+) {
+  update_map_contents_packages(where: $where, _set: $set) {
+    returning {
+      id
+    }
+  }
+}
+
+mutation INSERT_MAP_CONTENTS_PACKAGE(
+  $data: map_contents_packages_insert_input!
+) {
+  insert_map_contents_packages(objects: [$data]) {
+    returning {
+      id
+      package_id
+    }
+  }
+}
+
+mutation DELETE_MAP_CONTENTS_PACKAGE($where: map_contents_packages_bool_exp!) {
+  delete_map_contents_packages(where: $where) {
+    returning {
+      id
+    }
+  }
+}
+
+mutation INSERT_MAP_PACKAGES_FILES($data: map_packages_files_insert_input!) {
+  insert_map_packages_files(objects: [$data]) {
+    returning {
+      package_id
+      file_id
+    }
+  }
+}
+
+mutation DELETE_MAP_PACKAGES_FILES($where: map_packages_files_bool_exp!) {
+  delete_map_packages_files(where: $where) {
+    returning {
+      package_id
+      file_id
+    }
+  }
+}

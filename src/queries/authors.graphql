@@ -1,0 +1,215 @@
+#import "./contents.graphql"
+
+fragment AuthorInfo on authors {
+  id
+  firstname
+  lastname
+}
+
+query GET_LIST_AUTHORS(
+  $where: authors_bool_exp
+  $limit: Int
+  $offset: Int
+  $orderBy: [authors_order_by!]
+  $includeAvatar: Boolean! = false
+  $includeAvgRate: Boolean! = false
+  $includeContentsCount: Boolean! = false
+) {
+  authors(where: $where, limit: $limit, offset: $offset, order_by: $orderBy) {
+    ...AuthorInfo
+    avatar: avatar_id @include(if: $includeAvatar)
+    reviews_aggregate @include(if: $includeAvgRate) {
+      aggregate {
+        avg {
+          rate
+        }
+      }
+    }
+    contents_connection_aggregate(
+      where: {
+        content: { is_published: { _eq: true }, deleted_at: { _is_null: true } }
+      }
+    ) @include(if: $includeContentsCount) {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+
+query GET_LIST_VW_AUTHORS(
+  $where: vw_authors_bool_exp
+  $limit: Int
+  $offset: Int
+  $orderBy: [vw_authors_order_by!]
+) {
+  authors: vw_authors(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+  ) {
+    id
+    firstname
+    lastname
+    displayname
+    avatar
+    averagerate
+    contentcount
+  }
+}
+
+query RANDOM_AUTHORS {
+  authors: random_authors {
+    ...AuthorInfo
+    avatar: avatar_id
+    reviews_aggregate {
+      aggregate {
+        avg {
+          rate
+        }
+      }
+    }
+    contents_connection_aggregate(
+      where: {
+        content: { is_published: { _eq: true }, deleted_at: { _is_null: true } }
+      }
+    ) {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+query GET_SINGLE_AUTHOR($id: bigint!) {
+  author: authors_by_pk(id: $id) {
+    ...AuthorInfo
+    description
+    avatar_id: avatar_id
+    avatar_bucket: avatar {
+      bucket
+    }
+  }
+}
+
+query GET_SINGLE_AUTHOR_DETAIL($id: bigint!, $limit: Int, $offset: Int) {
+  author: authors_by_pk(id: $id) {
+    ...AuthorInfo
+    description
+    avatar_id: avatar_id
+    avatar: avatar {
+      bucket
+    }
+    created_by
+    contents_connection_aggregate(
+      where: { content: { deleted_at: { _is_null: true } } }
+    ) {
+      aggregate {
+        count
+      }
+    }
+    contents_connection(
+      where: {
+        content: {
+          _and: { is_published: { _eq: true }, deleted_at: { _is_null: true } }
+        }
+      }
+      order_by: { created_at: desc }
+    ) {
+      content {
+        ...ContentCard
+      }
+    }
+    reviews_aggregate {
+      aggregate {
+        avg {
+          rate
+        }
+        count
+      }
+    }
+  }
+}
+mutation CREATE_AUTHOR($data: authors_insert_input!) {
+  insert_authors(objects: [$data]) {
+    returning {
+      id
+      firstname
+      lastname
+    }
+  }
+}
+
+mutation UPDATE_AUTHOR($where: authors_bool_exp!, $set: authors_set_input) {
+  update_authors(where: $where, _set: $set) {
+    returning {
+      ...AuthorInfo
+      birthdate
+      description
+    }
+  }
+}
+
+mutation CREATE_AUTHOR_REVIEW($author: [author_reviews_insert_input!]!) {
+  insert_author_reviews(objects: $author) {
+    returning {
+      id
+      comment
+      rate
+      created_at
+      user {
+        id
+        displayname
+        email
+      }
+    }
+  }
+}
+
+query GET_AUTHOR_REVIEWS($where: author_reviews_bool_exp) {
+  author_reviews(where: $where, order_by: { created_at: desc }) {
+    id
+    comment
+    rate
+    created_at
+    user {
+      id
+      displayname
+      email
+    }
+  }
+}
+
+query GET_AUTHORS_AGGREGATE {
+  authors_aggregate {
+    aggregate {
+      count
+    }
+  }
+}
+
+query GET_AUTHORS_CONTENTS(
+  $where: map_contents_authors_bool_exp
+  $limit: Int
+  $offset: Int
+) {
+  map_contents_authors(where: $where, limit: $limit, offset: $offset) {
+    content {
+      id
+      name
+      reviews {
+        rate
+      }
+      prices {
+        price
+        payment_type
+      }
+      files(where: { type: { _eq: "cover" } }) {
+        file_id: file_id
+        file {
+          bucket
+        }
+      }
+    }
+  }
+}

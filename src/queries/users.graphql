@@ -1,0 +1,70 @@
+# get user by id
+query GET_USER($id: String!) {
+  user: users_by_pk(id: $id) {
+    id
+    lastname
+    firstname
+    email
+    phone
+    gender
+    birthdate
+    roles_connection(
+      where: { deleted_at: { _is_null: true } }
+      order_by: { role: { priority: desc } }
+    ) {
+      role {
+        name
+      }
+    }
+    files_connection(
+      where: { type: { _eq: "avatar" } }
+      order_by: { created_at: desc_nulls_last }
+      limit: 1
+    ) {
+      file_avatar: file_id
+      file {
+        bucket
+      }
+    }
+    organizations: organizations_connection(
+      where: {
+        organization: {
+          is_active: { _eq: true }
+          deleted_at: { _is_null: true }
+        }
+      }
+    ) {
+      organization_id
+    }
+  }
+}
+
+mutation UPDATE_USER($where: users_bool_exp!, $set: users_set_input) {
+  update_users(where: $where, _set: $set) {
+    returning {
+      id
+      firstname
+    }
+  }
+}
+
+mutation CREATE_USER_FILES($data: [map_users_files_insert_input!]!) {
+  insert_map_users_files(objects: $data) {
+    returning {
+      id
+      file_id
+    }
+  }
+}
+
+mutation UPDATE_USER_FILES(
+  $where: map_users_files_bool_exp!
+  $set: map_users_files_set_input
+) {
+  update_map_users_files(where: $where, _set: $set) {
+    returning {
+      id
+      file_id
+    }
+  }
+}

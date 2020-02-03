@@ -1,0 +1,221 @@
+#import "./contents.graphql"
+
+query GET_LIST_ORGANIZATIONS(
+  $where: organizations_bool_exp
+  $limit: Int
+  $offset: Int
+  $orderBy: [organizations_order_by!]
+) {
+  organizations(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+  ) {
+    id
+    name
+    is_active
+    description
+    contents_connection_aggregate(
+      where: {
+        content: { is_published: { _eq: true }, deleted_at: { _is_null: true } }
+      }
+    ) {
+      aggregate {
+        count
+      }
+    }
+    avatar: avatar_id
+    avatar_bucket: avatar {
+      bucket
+    }
+  }
+}
+
+query GET_SINGLE_ORGANIZATION($id: bigint!, $user_id: String) {
+  organization: organizations_by_pk(id: $id) {
+    users_connection_aggregate(where: { user_id: { _eq: $user_id } }) {
+      aggregate {
+        count
+      }
+    }
+    contents_connection {
+      content {
+        ...ContentCard
+      }
+    }
+  }
+}
+
+query GET_SINGLE_ORGANIZATION_INFO($id: bigint!) {
+  organization: organizations_by_pk(id: $id) {
+    id
+    name
+    description
+    long_description
+    type
+    contents_connection_aggregate(
+      where: {
+        content: { is_published: { _eq: true }, deleted_at: { _is_null: true } }
+      }
+    ) {
+      aggregate {
+        count
+      }
+    }
+    avatar: avatar_id
+    avatar_bucket: avatar {
+      bucket
+    }
+  }
+}
+
+query GET_ORGANIZATION_USERS(
+  $id: bigint!
+  $limit: Int
+  $offset: Int
+  $where: map_users_organizations_bool_exp
+  $orderBy: [map_users_organizations_order_by!]
+) {
+  organization: organizations_by_pk(id: $id) {
+    users_connection_aggregate(where: $where) {
+      aggregate {
+        count
+      }
+    }
+    users_connection(
+      offset: $offset
+      limit: $limit
+      order_by: $orderBy
+      where: $where
+    ) {
+      user {
+        id
+        email
+        displayname
+        firstname
+        lastname
+        created_at
+      }
+      role
+    }
+  }
+}
+
+mutation UPDATE_ORGANIZATION(
+  $where: organizations_bool_exp!
+  $set: organizations_set_input
+) {
+  update_organizations(where: $where, _set: $set) {
+    returning {
+      id
+      name
+      description
+      long_description
+      avatar_id
+    }
+  }
+}
+
+query GET_VW_ORGANIZATIONS_COUNT($limit: Int, $offset: Int) {
+  organization_content_count: vw_organizations_content_count(
+    limit: $limit
+    offset: $offset
+  ) {
+    contentscount
+    id
+    name
+  }
+}
+
+query GET_VW_ORGANIZATION(
+  $where: vw_organizations_bool_exp
+  $limit: Int
+  $offset: Int
+  $order_by: [vw_organizations_order_by!]
+) {
+  organizations: vw_organizations(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $order_by
+  ) {
+    id
+    name
+    description
+    avatar
+    bucket
+    contentcount
+  }
+}
+
+query GET_ORGANIZATIONS_AGGREGATE {
+  organizations_aggregate(where: { is_active: { _eq: true } }) {
+    aggregate {
+      count
+    }
+  }
+}
+
+query GET_ORGANIZATION_ACCOUNT($where: payment_vw_paid_contents_bool_exp) {
+  payment_vw_paid_contents_aggregate(where: $where) {
+    aggregate {
+      sum {
+        total
+      }
+    }
+  }
+}
+
+query ORGANIZATION_ROLE($user_id: String!, $organization_id: bigint!) {
+  organization_role: map_users_organizations_by_pk(
+    organization_id: $organization_id
+    user_id: $user_id
+  ) {
+    role
+  }
+}
+
+query GET_ORGANIZATION_CONTENTS(
+  $where: vw_organization_contents_bool_exp
+  $limit: Int
+  $offset: Int
+  $order_by: [vw_organization_contents_order_by!]
+) {
+  vw_organization_contents(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $order_by
+  ) {
+    id
+    name
+    meta
+    cover
+    bucket
+    views
+    is_published
+    organization_id
+    payment_type
+    price
+    type
+    created_at
+    read
+  }
+}
+
+mutation DELETE_MAP_USER_OTGANIZATIONS(
+  $user_id: String
+  $organization_id: bigint
+) {
+  delete_map_users_organizations(
+    where: {
+      organization_id: { _eq: $organization_id }
+      user_id: { _eq: $user_id }
+    }
+  ) {
+    returning {
+      user_id
+    }
+  }
+}

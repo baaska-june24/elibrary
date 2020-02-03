@@ -1,0 +1,15 @@
+mutation SEND_EMAIL($data: emails_insert_input!) {
+  insert_emails(objects: [$data]) {
+    returning {
+      id
+    }
+  }
+}
+
+
+query EMAILS($where: emails_bool_exp!) {
+  emails(where: $where) {
+    id
+  }
+}
+

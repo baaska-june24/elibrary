@@ -1,0 +1,17 @@
+query IS_BOOKMARKED($contentId: bigint!, $userId: String!) {
+  isBookmarked: bookmarks_by_pk(content_id: $contentId, user_id: $userId) {
+    content_id
+    user_id
+  }
+}
+mutation CREATE_BOOKMARK($data: [bookmarks_insert_input!]!) {
+  insert_bookmarks(objects: $data) {
+    affected_rows
+  }
+}
+
+mutation DELETE_BOOKMARK($where: bookmarks_bool_exp!) {
+  delete_bookmarks(where: $where) {
+    affected_rows
+  }
+}

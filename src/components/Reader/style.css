@@ -1,0 +1,36 @@
+.reader-wrapper {
+  background-color: #808080;
+  min-height: 100vh;
+}
+
+.es-reader-pages .row {
+  padding: 3rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.es-reader-pages .page {
+  position: relative;
+  background-color: #fff;
+}
+
+.page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.es-reader-pages .page + .page {
+  margin-left: 10px;
+}
+
+.es-reader-pages .textLayer ::selection {
+  background-color: rgb(0, 0, 255);
+  color: rgb(0, 0, 255);
+}
+
+.es-reader-pages .textLayer ::-moz-selection {
+  background-color: rgb(0, 0, 255);
+  color: rgb(0, 0, 255);
+}

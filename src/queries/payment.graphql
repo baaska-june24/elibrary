@@ -1,0 +1,358 @@
+query GET_WITHDRAWAL_REQUEST($organization_id: bigint!) {
+  payment_withdraw_requests(
+    where: { organization_id: { _eq: $organization_id } }
+  ) {
+    id
+    key: id
+    is_transfered
+    transfered_user_id
+    amount
+    created_at
+    updated_at
+  }
+}
+
+mutation CREATE_PAYMENT($data: [payment_headers_insert_input!]!) {
+  insert_payment_headers(objects: $data) {
+    returning {
+      id
+      qty
+      total
+      amount
+      discount
+      user_id
+    }
+  }
+}
+mutation CREATE_TRANSACTION($data: [payment_transactions_insert_input!]!) {
+  insert_payment_transactions(objects: $data) {
+    returning {
+      id
+      header_id
+    }
+  }
+}
+
+mutation DELETE_PAYMENT_DETAIL($id: bigint) {
+  update_payment_details(
+    where: { id: { _eq: $id } }
+    _set: { deleted_at: "now()" }
+  ) {
+    returning {
+      id
+    }
+  }
+}
+
+mutation UPDATE_PAYMENT(
+  $headerid: bigint
+  $data: payment_headers_set_input
+  $detailData: [payment_details_insert_input!]!
+  $updateColumn: [payment_details_update_column!]!
+) {
+  update_payment_headers(where: { id: { _eq: $headerid } }, _set: $data) {
+    returning {
+      id
+    }
+  }
+  insert_payment_details(
+    objects: $detailData
+    on_conflict: {
+      constraint: payment_details_pkey
+      update_columns: $updateColumn
+    }
+  ) {
+    returning {
+      id
+    }
+  }
+}
+
+query GET_BASKET_ITEMS(
+  $contentIds: [bigint!]
+  $membershipIds: [bigint!]
+  $packageIds: [bigint!]
+) {
+  contents(
+    where: { id: { _in: $contentIds }, deleted_at: { _is_null: true } }
+  ) {
+    id
+    name
+    oldcover: meta(path: "cover")
+    files(where: { type: { _eq: "cover" } }) {
+      file_id: file_id
+      file {
+        bucket
+      }
+    }
+    prices {
+      price
+      payment_type
+    }
+    is_published
+  }
+  memberships(
+    where: { id: { _in: $membershipIds }, deleted_at: { _is_null: true } }
+  ) {
+    id
+    name
+  }
+  packages(
+    where: { id: { _in: $packageIds }, deleted_at: { _is_null: true } }
+  ) {
+    id
+    name
+  }
+}
+
+subscription GET_TRANSACTION_BY_HEADER_ID($id: bigint!) {
+  payment_transactions(where: { header_id: { _eq: $id } }) {
+    id
+    status
+    noatus: meta(path: "noatus")
+  }
+}
+
+subscription GET_TRANSACTION_BY_PKID($id: bigint!) {
+  payment_transactions_by_pk(id: $id) {
+    id
+    meta(path: "noatus")
+    payment_type
+    header {
+      details {
+        content {
+          id
+          name
+          oldcover: meta(path: "cover")
+          files(where: { type: { _eq: "cover" } }) {
+            file_id: file_id
+            file {
+              bucket
+            }
+          }
+          prices {
+            price
+            payment_type
+          }
+          is_published
+        }
+        membership {
+          id
+          name
+        }
+        package {
+          id
+          name
+        }
+        id
+        qty
+        price
+        total
+      }
+    }
+  }
+}
+
+mutation CREATE_INVOICE(
+  $invoiceid: String!
+  $description: String!
+  $totalAmount: String!
+) {
+  createInvoice(
+    data: {
+      invoiceNumber: $invoiceid
+      description: $description
+      totalAmount: $totalAmount
+    }
+  ) {
+    qpay {
+      jsonData {
+        url
+        qrImage
+        deeplinks {
+          name
+          link
+        }
+      }
+    }
+    lend {
+      code
+      amount
+      invoiceNumber
+      qrLink
+      qrString
+    }
+    golomt {
+      amount
+      invoiceNumber
+      key
+      url
+    }
+  }
+}
+
+mutation CHECK_ORGANIZATION_REGISTRATION($registerNo: String!) {
+  checkOrganizationRegistration(registration: $registerNo) {
+    name
+    vatpayer
+    receiptFound
+    vatpayerRegisteredDate
+  }
+}
+
+subscription GET_TRANSACTION_LIST($createdDate: timestamptz!) {
+  payment_transactions(
+    order_by: { created_at: desc }
+    where: {
+      _or: [
+        { status: { _eq: "pending" }, created_at: { _gt: $createdDate } }
+        { status: { _eq: "success" } }
+      ]
+    }
+  ) {
+    id
+    payment_type
+    status
+    amount
+    meta
+    created_at
+  }
+}
+
+query GET_CONTENT_TRANSACTION($content_id: bigint) {
+  payment_transactions(
+    where: {
+      status: { _eq: "success" }
+      header: { details: { content_id: { _eq: $content_id } } }
+    }
+  ) {
+    id
+    payment_type
+    status
+    amount
+    meta
+    created_at
+  }
+}
+
+query GET_PAID_CONTENTS(
+  $where: payment_vw_paid_contents_bool_exp
+  $limit: Int
+  $offset: Int
+  $orderBy: [payment_vw_paid_contents_order_by!]
+) {
+  payment_vw_paid_contents(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $orderBy
+  ) {
+    rowkey: uniqkey
+    content_id: id
+    name
+    cover: key
+    isbn
+    discount
+    price
+    total
+    type
+    qty
+    created_at
+  }
+}
+
+query GET_PAID_CONTENTS_AGGREGATE($where: payment_vw_paid_contents_bool_exp) {
+  payment_vw_paid_contents_aggregate(where: $where) {
+    aggregate {
+      count
+      sum {
+        total
+      }
+    }
+  }
+}
+
+query GET_ORGANIZATION_BALANCE(
+  $where: payment_vw_organizations_balance_bool_exp
+) {
+  payment_vw_organizations_balance(where: $where) {
+    end_balance
+    total_withdraw_amount
+    after_vat
+    total_balance
+    total_amount
+    total_withdrawed_amount
+    esan_amount
+  }
+}
+
+mutation INSERT_WITHDRAWAL_REQUEST(
+  $organization_id: bigint!
+  $user_id: String
+  $amount: float8
+) {
+  insert_payment_withdraw_requests(
+    objects: {
+      organization_id: $organization_id
+      created_user_id: $user_id
+      amount: $amount
+    }
+  ) {
+    returning {
+      id
+    }
+  }
+}
+
+subscription GET_TRANSACTION_USER(
+  $where: payment_transactions_bool_exp
+  $limit: Int
+  $offset: Int
+  $order_by: [payment_transactions_order_by!]
+) {
+  payment_transactions(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $order_by
+  ) {
+    id
+    key: id
+    meta(path: "noatus")
+    created_at
+    payment_type
+    amount
+    header {
+      details {
+        content {
+          id
+          name
+          oldcover: meta(path: "cover")
+          files(where: { type: { _eq: "cover" } }) {
+            file_id: file_id
+            file {
+              bucket
+            }
+          }
+          prices {
+            price
+            payment_type
+          }
+          is_published
+        }
+        membership {
+          id
+          name
+        }
+        package {
+          id
+          name
+        }
+        id
+        qty
+        price
+        total
+      }
+    }
+  }
+}

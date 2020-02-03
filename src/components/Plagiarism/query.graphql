@@ -1,0 +1,51 @@
+mutation SEARCH_TEXT($text: String!, $user_id: String!, $type: RequestType!, $category: String) {
+  createPlagiarismRequest(text: $text, user_id: $user_id, type: $type, category: $category) {
+    id
+    token
+  }
+}
+
+subscription SEARCH_RESULT($id: bigint!) {
+  plagiarism_request: plagiarism_search_requests_by_pk(id: $id) {
+    status
+    token
+    percent
+    results(order_by: { page: asc_nulls_last, created_at: asc }) {
+      prev_sentence
+      next_sentence
+      page
+      content_id
+      percent
+      status
+      sentence
+      content {
+        id
+        name
+        authors_connection {
+          author {
+            firstname
+            lastname
+          }
+        }
+        meta(path: "publishedAt")
+      }
+    }
+  }
+}
+
+query CHECK_STATUS($id: Int!, $token: String!) {
+  checkResult(requestId: $id, token: $token)
+}
+
+query GET_PLAGIARISM_HISTORY($userID: String!) {
+  plagiarism_search_requests(
+    where: { status: { _eq: "done" }, user_id: { _eq: $userID } }
+    order_by: { created_at: desc }
+  ) {
+    id
+    search_text
+    status
+    created_at
+    type
+  }
+}

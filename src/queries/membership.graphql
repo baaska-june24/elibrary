@@ -1,0 +1,56 @@
+query GET_MEMBERSHIP($user_id: String) {
+  currentMembership: map_users_memberships(
+    where: {
+      user_id: { _eq: $user_id }
+      start_date: { _lte: "now()" }
+      end_date: { _gte: "now()" }
+    }
+  ) {
+    id
+    user_id
+    membership {
+      id
+      name
+      price
+      day
+    }
+    end_date
+    description
+  }
+  memberships {
+    id
+    name
+    price
+    day
+  }
+  lastMembership: map_users_memberships_aggregate(
+    where: { user_id: { _eq: $user_id }, deleted_at: { _is_null: true } }
+  ) {
+    aggregate {
+      max {
+        end_date
+      }
+    }
+  }
+}
+
+query GET_CURRENT_MEMBERSHIP($user_id: String) {
+  currentMembership: map_users_memberships(
+    where: {
+      user_id: { _eq: $user_id }
+      start_date: { _lte: "now()" }
+      end_date: { _gte: "now()" }
+    }
+  ) {
+    id
+    user_id
+    membership {
+      id
+      name
+      price
+      day
+    }
+    end_date
+    description
+  }
+}

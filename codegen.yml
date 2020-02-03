@@ -1,0 +1,18 @@
+overwrite: true
+schema:
+  - ${BACKEND_ENDPOINT}/v1/graphql:
+      headers:
+        x-hasura-admin-secret: ${BACKEND_SECRET}
+documents: "src/**/*.graphql"
+generates:
+  src/generated/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "fragment-matcher"
+  src/generated/declarations.d.ts:
+    plugins:
+      - "typescript-graphql-files-modules"
+  ./schema.json:
+    plugins:
+      - "introspection"

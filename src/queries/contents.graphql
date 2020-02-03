@@ -1,0 +1,322 @@
+fragment ContentCard on contents {
+  id
+  name
+  files(where: { type: { _eq: "cover" } }) {
+    file_id: file_id
+    file {
+      bucket
+    }
+  }
+  created_at
+  prices {
+    price
+    payment_type
+  }
+  is_published
+  meta
+}
+
+query GET_SINGLE_CONTENT($id: bigint!) {
+  content: contents_by_pk(id: $id) {
+    id
+    name
+    type
+    description
+    meta
+    isbn
+    views
+    is_published
+    organizations {
+      organization_id
+    }
+    authors_connection {
+      author {
+        id
+        firstname
+        lastname
+      }
+    }
+    tags_connection {
+      tag {
+        id
+        type_id
+      }
+    }
+    created_at
+  }
+}
+
+query GET_LIST_CONTENTS(
+  $where: contents_bool_exp
+  $limit: Int
+  $offset: Int
+  $orderBy: [contents_order_by!]
+) {
+  contents(where: $where, limit: $limit, offset: $offset, order_by: $orderBy) {
+    ...ContentCard
+  }
+}
+
+query GET_SUGGEST_CONTENTS {
+  contents: random_contents {
+    ...ContentCard
+  }
+}
+
+query GET_AGGREGATE_CONTENTS($where: contents_bool_exp) {
+  contents_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+query GET_USERS_CONTENTS_STATUS($content_id: bigint!, $user_id: String!) {
+  content: contents_by_pk(id: $content_id) {
+    name
+    files(where: { type: { _eq: "file" }, is_active: { _eq: true } }) {
+      file: file_id
+    }
+    status_connection(where: { user_id: { _eq: $user_id } }) {
+      max_page
+      current_page
+    }
+  }
+}
+
+query GET_USERS_CONTENTS {
+  map_users_contents_status(
+    order_by: { updated_at: desc }
+    where: {
+      content: { is_published: { _eq: true }, deleted_at: { _is_null: true } }
+    }
+  ) {
+    content_id
+    current_page
+    max_page
+    content {
+      ...ContentCard
+      pageLength: meta(path: "pageLength")
+    }
+  }
+}
+
+query GET_SINGLE_CONTENT_DETAIL($id: bigint!) {
+  content: vw_contents(where: { id: { _eq: $id } }) {
+    id
+    name
+    description
+    meta
+    cover: key
+    bucket
+    average_rate
+    price
+    payment_type
+    read
+    type
+  }
+  content_detail: contents_by_pk(id: $id) {
+    id
+    authors_connection(limit: 3) {
+      author {
+        id
+        firstname
+        lastname
+      }
+    }
+    files(
+      where: { type: { _eq: "sample" }, deleted_at: { _is_null: true } }
+      order_by: { created_at: asc }
+    ) {
+      file: file_id
+    }
+    languages: tags_connection(where: { tag: { type_id: { _eq: 4 } } }) {
+      tag {
+        value
+      }
+    }
+    category: tags_connection(where: { tag: { type_id: { _eq: 1 } } }) {
+      tag {
+        value
+        parent {
+          value
+        }
+      }
+    }
+    organizations {
+      organization {
+        id
+        name
+        type
+      }
+    }
+    views
+  }
+}
+
+query GET_CONTENT_REVIEWS($id: bigint!) {
+  reviews(where: { content_id: { _eq: $id } }, order_by: { created_at: desc }) {
+    id
+    comment
+    rate
+    user {
+      id
+      displayname
+      email
+      avatar
+      bucket
+    }
+    created_at
+  }
+}
+
+mutation CREATE_CONTENT($data: contents_insert_input!) {
+  insert_contents(objects: [$data]) {
+    returning {
+      id
+      name
+    }
+  }
+}
+
+mutation CREATE_CONTENT_REVIEW($data: [reviews_insert_input!]!) {
+  insert_reviews(objects: $data) {
+    returning {
+      id
+      comment
+      rate
+
+      user {
+        id
+        displayname
+        email
+        avatar
+        bucket
+      }
+      created_at
+    }
+  }
+}
+
+mutation UPDATE_CONTENTS(
+  $where: contents_bool_exp!
+  $set: contents_set_input!
+) {
+  update_contents(where: $where, _set: $set) {
+    returning {
+      id
+      name
+    }
+  }
+}
+mutation UPDATE_USERS_CONTENTS_STATUS(
+  $data: [map_users_contents_status_insert_input!]!
+  $update_columns: [map_users_contents_status_update_column!]!
+) {
+  insert_map_users_contents_status(
+    objects: $data
+    on_conflict: {
+      constraint: map_users_contents_status_pkey
+      update_columns: $update_columns
+    }
+  ) {
+    affected_rows
+  }
+}
+
+query GET_ORGANIZATIONS_PAID_CONTENTS(
+  $where: vw_organizations_paid_contents_bool_exp
+  $limit: Int
+  $offset: Int
+  $order_by: [vw_organizations_paid_contents_order_by!]
+) {
+  vw_organizations_paid_contents(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: $order_by
+  ) {
+    id
+    name
+    meta
+    cover
+    bucket
+    views
+    is_published
+    organization_id
+    payment_type
+    price
+    type
+    created_at
+    read
+  }
+}
+
+query GET_AGGREGATE_ORG_CONTENTS(
+  $where: vw_organizations_paid_contents_bool_exp
+) {
+  vw_organizations_paid_contents_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+mutation UPDATE_CONTENT_VIEW($contentId: bigint!) {
+  update_contents(where: { id: { _eq: $contentId } }, _inc: { views: 1 }) {
+    returning {
+      views
+    }
+  }
+}
+
+mutation EDIT_UPDATE_CONTENT(
+  $where: contents_bool_exp!
+  $set: contents_set_input!
+  $meta_update: jsonb
+) {
+  update_contents(where: $where, _set: $set, _append: { meta: $meta_update }) {
+    returning {
+      id
+    }
+  }
+}
+
+mutation UPSERT_CONTENTS_AUTHORS(
+  $objects: [map_contents_authors_insert_input!]!
+) {
+  insert_map_contents_authors(
+    objects: $objects
+    on_conflict: {
+      constraint: map_contents_authors_pkey
+      update_columns: [content_id, author_id]
+    }
+  ) {
+    affected_rows
+  }
+}
+
+mutation UPSERT_CONTENTS_TAGS($objects: [map_contents_tags_insert_input!]!) {
+  insert_map_contents_tags(
+    objects: $objects
+    on_conflict: {
+      constraint: map_contents_tags_pkey
+      update_columns: [content_id, tag_id]
+    }
+  ) {
+    affected_rows
+  }
+}
+
+mutation UPDATE_CONTENTS_ORGANIZATIONS(
+  $where: map_contents_organizations_bool_exp!
+  $newOrganizationId: bigint!
+) {
+  update_map_contents_organizations(
+    where: $where
+    _set: { organization_id: $newOrganizationId }
+  ) {
+    returning {
+      organization_id
+    }
+  }
+}

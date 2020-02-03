@@ -1,0 +1,8 @@
+mutation CREATE_ORGANIZATION_REQUEST($data: organizations_insert_input!) {
+  insert_organizations(objects: [$data]) {
+    returning {
+      id
+      name
+    }
+  }
+}

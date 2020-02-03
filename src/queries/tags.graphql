@@ -1,0 +1,29 @@
+query GET_LIST_TAG_TYPES(
+  $where: tag_types_bool_exp
+  $includeTags: Boolean! = false
+) {
+  types: tag_types(where: $where) {
+    id
+    name
+    key
+    tags @include(if: $includeTags) {
+      key: id
+      value: id
+      title: value
+      parent_id
+    }
+  }
+}
+
+query GET_LIST_TAG_OPTIONS(
+  $where: tag_options_bool_exp
+  $limit: Int
+  $offset: Int
+) {
+  options: tag_options(where: $where, limit: $limit, offset: $offset) {
+    key: id
+    value: id
+    title: value
+    parent_id
+  }
+}

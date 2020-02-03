@@ -1,0 +1,69 @@
+.title-white {
+  font-size: 23px;
+  font-weight: 600;
+  color: #fff;
+}
+.single-item {
+  .header {
+    height: auto;
+    padding: 50px 0;
+    .container,
+    .cover {
+      height: auto;
+    }
+    .ant-avatar {
+      margin-right: 8px;
+    }
+    .ant-btn {
+      font-size: 16px;
+      height: 40px;
+      line-height: 40px;
+      padding: 0 20px;
+    }
+  }
+}
+.header-wrapper {
+  position: relative;
+  padding-top: 5rem;
+}
+
+.content-price {
+  color: #fff;
+  margin: 1rem 0;
+}
+
+.button-wrapper {
+  margin: 1rem 0;
+}
+
+.content-meta {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  padding: 20px;
+  border: 1px dashed #ccc;
+  border-radius: 5px;
+  li {
+    padding: 0.5rem;
+    > strong {
+      padding-left: 10px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .header-wrapper {
+    padding-top: 1rem;
+  }
+
+  .content-meta {
+    display: block;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    li {
+      display: block;
+      padding-left: 0;
+    }
+  }
+}

@@ -1,0 +1,7 @@
+mutation CREATE_FILES($data: [files_insert_input!]!) {
+  insert_files(objects: $data) {
+    returning {
+      key
+    }
+  }
+}

@@ -1,0 +1,82 @@
+.esan-search-input {
+  position: relative;
+
+  .ant-input-group-addon:first-child {
+    border-radius: 20px 0 0 20px;
+    color: @primary-color;
+    padding: 0;
+    background-color: rgba(#fff, 0.6);
+    border: none;
+    .ant-btn-link {
+      color: #e77818;
+
+      &:hover {
+        color: rgba(#e77818, 0.75);
+      }
+    }
+  }
+
+  .ant-input-group-addon:last-child {
+    padding: 0;
+    border-radius: 0 20px 20px 0;
+    background-color: rgba(#fff, 0.6);
+    border: none;
+    .ant-btn-link {
+      color: #e77818;
+
+      &:hover {
+        color: rgba(#e77818, 0.75);
+      }
+    }
+  }
+
+  .ant-input {
+    background-color: rgba(#f2f2f2, 0.3);
+    border-color: transparent;
+    color: #fff;
+    height: 36px;
+    border-radius: 20px 0 0 20px;
+
+    &::placeholder {
+      color: #fff;
+    }
+
+    &:focus {
+      background-color: rgba(#fff, 0.35);
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .ant-input-group-addon + & {
+      border-radius: 0;
+    }
+  }
+
+  .ant-input-affix-wrapper:hover .ant-input:not(.ant-input-disabled) {
+    border-color: transparent;
+    background-color: rgba(#fff, 0.35);
+  }
+
+  .ant-input-clear-icon {
+    color: rgba(#fff, 0.5);
+
+    &:hover {
+      color: rgba(#fff, 0.75);
+    }
+  }
+}
+
+.esan-top-drawer .ant-drawer-close {
+  color: #fff;
+  width: 40px;
+  height: 84px;
+}
+
+.esan-search-drawer {
+  width: calc(100% - 30px);
+}
+
+.esan-search-dropdown {
+  padding: 16px;
+  width: 450px;
+}

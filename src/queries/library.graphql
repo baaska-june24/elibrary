@@ -1,0 +1,13 @@
+#import "./contents.graphql"
+
+query GET_PAID_CONTENT_LIST($where: payment_transactions_bool_exp) {
+  transactions: payment_transactions(where: $where) {
+    header {
+      details(where: { content_id: { _is_null: false } }) {
+        content {
+          ...ContentCard
+        }
+      }
+    }
+  }
+}

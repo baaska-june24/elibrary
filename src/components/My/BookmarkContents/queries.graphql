@@ -1,0 +1,32 @@
+subscription GET_BOOKMARKED_CONTENTS {
+  bookmarks(
+    order_by: { created_at: desc }
+    where: {
+      content: {
+        _and: { is_published: { _eq: true }, deleted_at: { _is_null: true } }
+      }
+    }
+  ) {
+    content {
+      id
+      name
+      files(where: { type: { _eq: "cover" } }) {
+        file_id: file_id
+        file {
+          bucket
+        }
+      }
+      reviews_aggregate {
+        aggregate {
+          avg {
+            rate
+          }
+        }
+      }
+      prices(where: { is_active: { _eq: true } }) {
+        price
+        payment_type
+      }
+    }
+  }
+}
